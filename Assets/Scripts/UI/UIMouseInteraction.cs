@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public abstract class UIMouseInteraction : MonoBehaviour, IPointerClickHandler
+public class UIMouseInteraction : MonoBehaviour, IPointerClickHandler
 {
     protected Dictionary<MouseAction, List<Action>> actionDict = new Dictionary<MouseAction, List<Action>>();
     public int ActionCount(MouseAction mouse) => actionDict.ContainsKey(mouse) ? actionDict[mouse].Count : 0;
@@ -13,12 +13,12 @@ public abstract class UIMouseInteraction : MonoBehaviour, IPointerClickHandler
         if (actionDict.ContainsKey(mouse)) foreach (var action in actionDict[mouse].ToArray()) action();
     }
 
-    public float lastClickTime = -1;
+    private float lastClickTime = -1;
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button == PointerEventData.InputButton.Left)
         {
-            if (Time.time - lastClickTime <= .2f)
+            if (Time.time - lastClickTime <= .2f && ActionCount(MouseAction.DoubleClick) > 0)
             {
                 lastClickTime = -1;
                 ExecuteAction(MouseAction.DoubleClick);

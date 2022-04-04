@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7af019e2fab89534c83bb2c6718ce633, type: 3}
-  m_Name: CardPrefab
+  m_Name: SpritePrefab
   m_EditorClassIdentifier: 
   sprites:
   - {fileID: 21300000, guid: 56343d4aae2d5484aae19673b0b7f85b, type: 3}
@@ -52,3 +52,4 @@ MonoBehaviour:
   - {fileID: 21300000, guid: b2040bea30c880e42b95488ac63d1705, type: 3}
   - {fileID: 21300000, guid: b7154a3c784250d4c87aae6e5bf1a293, type: 3}
   - {fileID: 21300000, guid: 6a653714b7d08da41a1ff7d433bf9df0, type: 3}
+  - {fileID: 21300000, guid: dd45beeae4a389a4a867fcd4c06a9db8, type: 3}

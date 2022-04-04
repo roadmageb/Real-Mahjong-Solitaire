@@ -25,4 +25,5 @@ public class CardSpriteSetting : ScriptableObject
         }
     }
     public Sprite this[MahjongCard card] => sprtDict[(card.color, card.num, card.isRed)];
+    public Sprite this[int num] => sprtDict[(0, num, false)];
 }

@@ -28,24 +28,27 @@ public class MahjongGame : MonoBehaviour
         get => _resetterCooldown;
         set
         {
-            _resetterCooldown = value;
-            resetterCooldownText.text = value.ToString();
-            resetterCooldownText.gameObject.SetActive(value != 0);
-            resetterButton.gameObject.SetActive(value == 0);
+            _resetterCooldown = value > 0 ? value : 0;
+            resetterCooldownText.text = _resetterCooldown.ToString();
+            resetterCooldownText.gameObject.SetActive(_resetterCooldown != 0);
+            resetterButton.gameObject.SetActive(_resetterCooldown == 0);
         }
     }
 
     public CardSpriteSetting spriteSetting;
 
     public UIMouseInteraction startButton, resetterButton;
-    public UIMouseInteraction[] laneButton;
+    private UIMouseInteraction[] laneButton;
     public Text scoreText, resetterCooldownText;
 
-    public RectTransform[] laneTransform;
-    private SpriteRenderer[,] laneCardRenderer;
+    public Transform[] laneParentTransform;
+    private RectTransform[] laneTransform;
+    private Image[,] laneCardRenderer;
     public RectTransform nextCardTransform;
-    public SpriteRenderer[,] nextCardRenderer;
+    private Image[] nextCardRenderer;
     public GameObject cardPrefab;
+
+    public GameObject gameParent;
 
     private void Start()
     {
@@ -53,17 +56,41 @@ public class MahjongGame : MonoBehaviour
         {
             ResetGame();
             startButton.gameObject.SetActive(false);
+            gameParent.SetActive(true);
         });
         resetterButton.AddAction(MouseAction.LeftClick, () => SetLaneButton(true));
 
         float gap = cardPrefab.GetComponent<RectTransform>().sizeDelta.x * 1.1f;
-        laneCardRenderer = new SpriteRenderer[4, 18];
+
+        laneTransform = new RectTransform[4];
+        laneButton = new UIMouseInteraction[4];
+        Loop.N(4, i =>
+        {
+            laneButton[i] = laneParentTransform[i].GetChild(0).GetComponent<UIMouseInteraction>();
+            laneTransform[i] = laneParentTransform[i].GetChild(1).GetComponent<RectTransform>();
+        });
+
+        SetLaneButton(false);
+
+        resetterButton.AddAction(MouseAction.DoubleClick, () => SetLaneButton(true));
+
+        laneCardRenderer = new Image[4, 18];
         Loop.N(4, 18, (i, j) =>
         {
             var obj = Instantiate(cardPrefab, laneTransform[i]).GetComponent<RectTransform>();
             obj.anchoredPosition = new Vector2(gap * j, 0);
-            laneCardRenderer[i, j] = obj.GetComponent<SpriteRenderer>();
+            laneCardRenderer[i, j] = obj.GetComponent<Image>();
         });
+
+        nextCardRenderer = new Image[3];
+        Loop.N(3, i =>
+        {
+            var obj = Instantiate(cardPrefab, nextCardTransform).GetComponent<RectTransform>();
+            obj.anchoredPosition = new Vector2(gap * i, 0);
+            nextCardRenderer[i] = obj.GetComponent<Image>();
+        });
+
+        gameParent.SetActive(false);
     }
 
     private void SetLaneButton(bool isResetter)
@@ -82,6 +109,9 @@ public class MahjongGame : MonoBehaviour
         });
         UnityEngine.Random.InitState((int)(Time.time * 100f));
         deck = deck.OrderBy(x => UnityEngine.Random.Range(0f, 1f)).ToList();
+
+        nextCards = new List<MahjongCard>();
+
         lanes = new MahjongPlayer[4];
         Loop.N(4, i =>
         {
@@ -89,9 +119,12 @@ public class MahjongGame : MonoBehaviour
             lanes[i].myWind = i;
             lanes[i].ResetPlayer();
         });
+
         totalScore = 0;
         resetterCooldown = 0;
         DrawNextCards(1);
+
+        SyncUI();
     }
     public void DrawNextCards(int num)
     {
@@ -108,6 +141,7 @@ public class MahjongGame : MonoBehaviour
             ResetLane(laneNum);
             resetterCooldown = 20 + totalScore / 5000;
             SetLaneButton(false);
+            SyncUI();
         }
     }
     public void ResetLane(int laneNum)
@@ -122,10 +156,11 @@ public class MahjongGame : MonoBehaviour
         MahjongCard lastCard = null;
         while (nextCards.Count > 0)
         {
-            if (lanes[laneNum].leftCard > 0) break;
+            if (lanes[laneNum].leftCard == 0) break;
             lanes[laneNum].AddCard(nextCards[0]);
             lastCard = nextCards[0];
             nextCards.RemoveAt(0);
+            resetterCooldown--;
         }
         if (lanes[laneNum].leftCard == 0)
         {
@@ -137,8 +172,29 @@ public class MahjongGame : MonoBehaviour
                 lanes[laneNum].myWind++;
             }
         }
-        lanes[laneNum].closedHand = lanes[laneNum].closedHand.OrderBy(x => UnityEngine.Random.Range(0f, 1f)).ToList();
-        if (nextCards.Count == 0) DrawNextCards(1); 
+        lanes[laneNum].closedHand = lanes[laneNum].closedHand.OrderBy(x => x.GetHashCode()).ToList();
+        if (nextCards.Count == 0) DrawNextCards(1);
+        SyncUI();
+    }
+
+    public void SyncUI()
+    {
+        int iter;
+        for (iter = 0; iter < nextCards.Count; iter++) nextCardRenderer[iter].sprite = spriteSetting[nextCards[iter]];
+        for (; iter < 3; iter++) nextCardRenderer[iter].sprite = spriteSetting[2];
+        nextCardTransform.anchoredPosition = -nextCardRenderer[nextCards.Count - 1].GetComponent<RectTransform>().anchoredPosition * .5f;
+
+        Loop.N(4, i =>
+        {
+            int idx = 0;
+            foreach (var card in lanes[i].closedHand) laneCardRenderer[i, idx++].sprite = spriteSetting[card];
+            foreach (var set in lanes[i].openHand)
+            {
+                Loop.N(4, j => laneCardRenderer[i, idx++].sprite = j is 0 or 3 ? spriteSetting[0] : spriteSetting[set.cardSet[0]]);
+            }
+            Loop.N(lanes[i].leftCard, j => laneCardRenderer[i, idx++].sprite = spriteSetting[1]);
+            for (; idx < 18; idx++) laneCardRenderer[i, idx].sprite = spriteSetting[2];
+        });
     }
 }
 
