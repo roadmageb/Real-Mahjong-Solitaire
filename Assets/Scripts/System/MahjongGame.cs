@@ -39,7 +39,9 @@ public class MahjongGame : MonoBehaviour
     public CardSpriteSetting spriteSetting;
 
     public UIMouseInteraction startButton, resetterButton;
+    public UIImage skipButton;
     public Text scoreText, resetterCooldownText;
+    private int skipNum;
 
     public UILaneController[] laneUI;
     public RectTransform nextCardTransform;
@@ -90,12 +92,13 @@ public class MahjongGame : MonoBehaviour
             nextCardRenderer[i] = obj.GetComponent<UIImage>();
         });
 
+        skipButton.GetComponent<UIMouseInteraction>().AddAction(MouseAction.LeftClick, () => SkipNextCards());
+
         gameParent.SetActive(false);
     }
 
     private void SetLaneButton(bool isResetter)
     {
-        
         if (!isResetter)
         {
             Loop.N(4, i => 
@@ -127,7 +130,18 @@ public class MahjongGame : MonoBehaviour
             resetterButton.AddAction(MouseAction.LeftClick, () => SetLaneButton(false));
         }
     }
-
+    public void SkipNextCards()
+    {
+        if (skipNum > 0)
+        {
+            deck.AddRange(nextCards);
+            nextCards.Clear();
+            deck = deck.OrderBy(x => UnityEngine.Random.Range(0f, 1f)).ToList();
+            DrawNextCards(3);
+            skipNum--;
+            SyncUI();
+        }
+    }
     public void ResetGame()
     {
         deck = new List<MahjongCard>();
@@ -148,6 +162,7 @@ public class MahjongGame : MonoBehaviour
             lanes[i].ResetPlayer();
         });
 
+        skipNum = 3;
         totalScore = 0;
         resetterCooldown = 0;
         DrawNextCards(3);
@@ -208,6 +223,7 @@ public class MahjongGame : MonoBehaviour
                     lanes[laneNum].myWind++;
                     initResetterCooldown += 2;
                     SetLaneButton(false);
+                    skipNum = 3;
                     SyncUI();
                 });
             }
@@ -260,6 +276,7 @@ public class MahjongGame : MonoBehaviour
 
             laneUI[i].propertyText.text = lanes[i].myWind + (lanes[i].isRon ? " Ron" : " Tsumo");
         });
+        skipButton.Set(skipNum);
     }
 }
 
