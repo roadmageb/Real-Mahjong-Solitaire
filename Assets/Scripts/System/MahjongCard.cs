@@ -9,7 +9,7 @@ public class MahjongCard
     public int num;
     public bool isRed;
 
-    public bool isNum => (int)color < 3;
+    public bool isNum => color is >= CardColor.Crak and <= CardColor.Bam;
     public bool isHonor => color is CardColor.Dragon or CardColor.Wind;
     public bool isTerminal => isNum && (num is 1 or 9);
     public bool isTerminalHonor => isTerminal || isHonor;
@@ -40,13 +40,18 @@ public class MahjongCard
         CardColor.Wind      => num + 30,
         _                   => 40,
     } * 2 + (isRed ? 1 : 0);
-    public override string ToString() => color switch
+    public override string ToString() => (color, num) switch
     {
-        CardColor.Crak => $"[Crak {num}]",
-        CardColor.Dot => $"[Dot {num}]",
-        CardColor.Bam => $"[Bam {num}]",
-        CardColor.Dragon => new string[] {"[White]", "[Green]", "[Red]"}[num],
-        CardColor.Wind => new string[] { "[East]", "[South]", "[West]" ,"[North]"}[num],
+        (CardColor.Crak, _)     => $"[Crak {num}]",
+        (CardColor.Dot, _)      => $"[Dot {num}]",
+        (CardColor.Bam, _)      => $"[Bam {num}]",
+        (CardColor.Dragon, 0)   => "[White]",
+        (CardColor.Dragon, 1)   => "[Green]",
+        (CardColor.Dragon, 2)   => "[Red]",
+        (CardColor.Wind, 0)     => "[East]",
+        (CardColor.Wind, 1)     => "[South]",
+        (CardColor.Wind, 2)     => "[West]",
+        (CardColor.Wind, 3)     => "[North]",
         _ => "[]",
     };
     public static int operator *(MahjongCard a, MahjongCard b)

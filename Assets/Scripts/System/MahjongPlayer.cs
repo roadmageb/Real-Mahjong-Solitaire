@@ -27,7 +27,7 @@ public class MahjongPlayer
         ret.Add(new MahjongPatternThirteenOrphans());
         return ret;
     }
-    public virtual int CalculateBestScore(MahjongCard lastCard)
+    public virtual (Score score, int point) CalculateBestScore(MahjongCard lastCard)
     {
         var patterns = InitAvailablePatterns();
 
@@ -56,9 +56,9 @@ public class MahjongPlayer
 
             PerfectSetRecursive(pattern, closedHand, 0, bestPatternCandidate);
         }
-        var availScore = bestPatternCandidate.Select(x => MahjongInfo.CalculateScore(x, this).CalcSum(x.isRon, myWind == 0)).ToList();
+        var best = bestPatternCandidate.Select(x => MahjongInfo.CalculateScore(x, this)).OrderByDescending(x => x.CalcSum(isRon, myWind == 0)).FirstOrDefault();
 
-        return availScore.Count > 0 ? availScore.Max() : 0;
+        return (best, best.CalcSum(isRon, myWind == 0));
     }
     protected void PerfectSetRecursive(MahjongPattern pattern, List<MahjongCard> hand, int num, List<MahjongPattern> perfectPatterns)
     {
@@ -87,6 +87,21 @@ public class MahjongPlayer
     {
         hand.Add(card);
         closedHand.Add(card);
+    }
+
+    public void MakeQuad(MahjongCard target)
+    {
+        var quad = new MahjongSetBody();
+        quad.bodyType = BodyType.Quad;
+        for (int i = 0; i < closedHand.Count; i++)
+        {
+            if (closedHand[i] * target == 0)
+            {
+                quad.cardSet.Add(closedHand[i]);
+                closedHand.RemoveAt(i--);
+            }
+        }
+        openHand.Add(quad);
     }
 
 }

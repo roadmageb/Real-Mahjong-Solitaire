@@ -37,7 +37,8 @@ public class MahjongPattern
     public MahjongPattern Clone()
     {
         MahjongPattern ret = Activator.CreateInstance(GetType()) as MahjongPattern;
-        ret.sets = new List<MahjongSet>(sets);
+        ret.sets = new List<MahjongSet>();
+        foreach (var set in sets) ret.sets.Add(set.Clone());
         ret.lastCard = lastCard;
         ret.isRon = isRon;
         return ret;

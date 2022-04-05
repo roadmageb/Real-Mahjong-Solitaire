@@ -1,9 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public abstract class MahjongSet
+public class MahjongSet
 {
     public List<MahjongCard> cardSet = new List<MahjongCard>();
     public (MahjongCard card, int from)? cardFrom = null;
@@ -12,7 +13,7 @@ public abstract class MahjongSet
 
     public MahjongCard this[int idx] => cardSet[idx];
 
-    public bool isHuro => cardFrom == null;
+    public bool isHuro => cardFrom != null;
     public int count => cardSet.Count;
     public int minNum => cardSet.Min(x => x.num);
     public bool containsTerminalHonor => cardSet.Count(x => x.isTerminalHonor) > 0;
@@ -26,8 +27,8 @@ public abstract class MahjongSet
             return cardSet[0].color;
         }
     }
-    public abstract int MaskCode(MahjongCard card);
-    public abstract bool CheckSuitability(MahjongCard card);
+    public virtual int MaskCode(MahjongCard card) => 0;
+    public virtual bool CheckSuitability(MahjongCard card) => false;
     public virtual void AddCard(MahjongCard card) => cardSet.Add(card);
     public virtual void RemoveCard(MahjongCard card) => cardSet.Remove(card);
     public override string ToString()
@@ -35,6 +36,13 @@ public abstract class MahjongSet
         string ret = "";
         foreach (var card in cardSet) ret += card;
         return $"{{{ret}}}";
+    }
+    public virtual MahjongSet Clone()
+    {
+        MahjongSet ret = Activator.CreateInstance(GetType()) as MahjongSet;
+        foreach (var card in cardSet) ret.cardSet.Add(card);
+        ret.cardFrom = cardFrom;
+        return ret;
     }
 }
 
@@ -81,19 +89,26 @@ public class MahjongSetBody : MahjongSet
         }
         else bodyType = BodyType.Unknown;
     }
+
+    public override MahjongSet Clone()
+    {
+        MahjongSetBody ret = base.Clone() as MahjongSetBody;
+        ret.bodyType = bodyType;
+        return ret;
+    }
 }
 public class MahjongSetHead : MahjongSet
 {
     public override int leftCard => 2 - count;
     public override SetType type => SetType.Head;
-    public override int MaskCode(MahjongCard card) => count == 0 || this[0] * card == 0 ? 1 << (int)SetType.Head : 0;
-    public override bool CheckSuitability(MahjongCard card) => count == 0 || this[0] * card == 0;
+    public override int MaskCode(MahjongCard card) => (count == 0 || this[0] * card == 0) ? 1 << (int)SetType.Head : 0;
+    public override bool CheckSuitability(MahjongCard card) => count == 0 || this[0] * card == 0 && leftCard > 0;
 }
 public class MahjongSetTerminalHonor : MahjongSet
 {
     public override int leftCard => 1 - count;
     public override SetType type => SetType.TerminalHonor;
-    public override int MaskCode(MahjongCard card) => count == 0 || this[0] * card == 0 ? 1 << (int)SetType.TerminalHonor & 1 << (int)SetType.TerminalHonorPair : 0;
+    public override int MaskCode(MahjongCard card) => (count == 0 || this[0] * card == 0) ? 1 << (int)SetType.TerminalHonor: 0;
     public override bool CheckSuitability(MahjongCard card) => card.isTerminalHonor && count == 0;
 }
 
@@ -101,7 +116,7 @@ public class MahjongSetTerminalHonorPair : MahjongSet
 {
     public override int leftCard => 2 - count;
     public override SetType type => SetType.TerminalHonorPair;
-    public override int MaskCode(MahjongCard card) => count == 0 || this[0] * card == 0 ? 1 << (int)SetType.TerminalHonor & 1 << (int)SetType.TerminalHonorPair : 0;
+    public override int MaskCode(MahjongCard card) => (count == 0 || this[0] * card == 0) ? 1 << (int)SetType.TerminalHonorPair : 0;
     public override bool CheckSuitability(MahjongCard card) => card.isTerminalHonor && count == 0 || count == 1 && this[0] * card == 0;
 }
 public enum SetType
