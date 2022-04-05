@@ -167,7 +167,7 @@ public class MahjongGame : MonoBehaviour
         if (resetterCooldown == 0)
         {
             ResetLane(laneNum);
-            resetterCooldown = initResetterCooldown + totalScore / 5000;
+            resetterCooldown = initResetterCooldown;
             SetLaneButton(false);
             SyncUI();
         }
@@ -206,6 +206,7 @@ public class MahjongGame : MonoBehaviour
                     laneUI[laneNum].readyScoreText.text = "";
                     ResetLane(laneNum);
                     lanes[laneNum].myWind++;
+                    initResetterCooldown += 2;
                     SetLaneButton(false);
                     SyncUI();
                 });
