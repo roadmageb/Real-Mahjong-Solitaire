@@ -44,8 +44,8 @@ public class MahjongCard
         CardColor.Crak      => num - 1,
         CardColor.Dot       => num + 8,
         CardColor.Bam       => num + 17,
-        CardColor.Dragon    => num + 27,
-        CardColor.Wind      => num + 30,
+        CardColor.Dragon    => num + 31,
+        CardColor.Wind      => num + 27,
         _                   => 40,
     } * 2 + (isRed ? 1 : 0);
     public override string ToString() => (color, num) switch
