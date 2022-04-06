@@ -5,12 +5,16 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
+[SelectionBase]
 public class MahjongGame : MonoBehaviour
 {
     public List<MahjongCard> nextCards;
     public MahjongPlayer[] lanes;
     public List<MahjongCard> deck;
     public List<MahjongCard> doraIndicators;
+
+    private float tsumoProb;
+    public float tsumoMaxProb, tsumoMinProb, tsumoDescent;
 
     private int _totalScore;
     private int totalScore
@@ -143,7 +147,7 @@ public class MahjongGame : MonoBehaviour
                 }
             });
             resetterButton.GetComponent<UIImage>().SetImage(resetterCoolDown > 0 ? 0 : 1);
-            resetterButton.ReplaceAction(MouseAction.LeftClick, () => { currentState = State.Resetter; SyncUI(); });
+            resetterButton.ReplaceAction(MouseAction.LeftClick, () => { if (resetterCoolDown == 0) { currentState = State.Resetter; SyncUI(); } });
         }
         else
         {
@@ -165,7 +169,7 @@ public class MahjongGame : MonoBehaviour
         if (currentState != State.Dora)
         {
             makeDoraButton.GetComponent<UIImage>().SetImage(makeDoraNum);
-            makeDoraButton.ReplaceAction(MouseAction.LeftClick, () => { currentState = State.Dora; SyncUI(); });
+            makeDoraButton.ReplaceAction(MouseAction.LeftClick, () => { if (makeDoraNum > 0) { currentState = State.Dora; SyncUI(); } });
         }
         else
         {
@@ -207,6 +211,7 @@ public class MahjongGame : MonoBehaviour
             lanes[i].ResetPlayer();
         });
 
+        tsumoProb = tsumoMaxProb;
         skipNum = 3;
         totalScore = 0;
         resetterCoolDown = 0;
@@ -238,6 +243,7 @@ public class MahjongGame : MonoBehaviour
     {
         foreach (var card in lanes[laneNum].hand) deck.Add(card);
         lanes[laneNum].ResetPlayer();
+        lanes[laneNum].isRon = UnityEngine.Random.Range(0f, 1f) > tsumoProb;
         ShuffleDeck();
     }
 
@@ -269,8 +275,9 @@ public class MahjongGame : MonoBehaviour
                     laneUI[laneNum].readyScoreText.text = "";
                     ResetLane(laneNum);
                     lanes[laneNum].myWind++;
-                    initResetterCoolDown += 2;
+                    initResetterCoolDown++;
                     skipNum = 3;
+                    tsumoProb = Mathf.Max(tsumoProb - tsumoDescent, tsumoMinProb);
                     SyncUI();
                 });
             }
@@ -285,7 +292,7 @@ public class MahjongGame : MonoBehaviour
         Func<MahjongCard, int> doraCount = x => doraTuples.Count(y => x * y == 0);
 
         int iter;
-        for (iter = 0; iter < nextCards.Count; iter++) nextCardRenderer[iter].Set(spriteSetting[nextCards[iter]], doraCount(nextCards[iter]));
+        for (iter = 0; iter < nextCards.Count; iter++)nextCardRenderer[iter].Set(spriteSetting[nextCards[iter]], doraCount(nextCards[iter]));
         for (; iter < 3; iter++) nextCardRenderer[iter].Set(spriteSetting[2], 0);
         nextCardTransform.anchoredPosition = -nextCardRenderer[nextCards.Count - 1].GetComponent<RectTransform>().anchoredPosition * .5f;
 
@@ -301,9 +308,10 @@ public class MahjongGame : MonoBehaviour
             Loop.N(18, j => laneUI[i].cardImage[j].GetComponent<UIMouseInteraction>().RemoveAction(MouseAction.LeftClick));
             foreach (var card in lanes[i].closedHand)
             {
-                laneUI[i].cardImage[idx].Set(spriteSetting[card], currentState != State.Dora ? doraCount(card) : maxDoraNum + 1);
-                if (currentState == State.Dora)
+                laneUI[i].cardImage[idx].Set(spriteSetting[card], doraCount(card));
+                if (currentState == State.Dora && !laneUI[i].isReady)
                 {
+                    laneUI[i].cardImage[idx].SetColor(maxDoraNum + 1);
                     laneUI[i].cardImage[idx].GetComponent<UIMouseInteraction>().AddAction(MouseAction.LeftClick, () =>
                     {
                         lanes[i].RemoveCard(card);
@@ -314,6 +322,7 @@ public class MahjongGame : MonoBehaviour
                             doraIndicators.RemoveAt(0);
                             ShuffleDeck();
                         }
+                        makeDoraNum--;
                         currentState = State.Insert;
                         SyncUI();
                     });

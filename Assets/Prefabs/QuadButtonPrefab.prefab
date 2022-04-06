@@ -68,7 +68,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1373200192, guid: 19e6f2ba0a21fcd45bfaa1a4e1545ec6, type: 3}
+  m_Sprite: {fileID: -681617467, guid: 19e6f2ba0a21fcd45bfaa1a4e1545ec6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -91,6 +91,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sprites: []
+  colors: []
 --- !u!114 &-2980015874099040133
 MonoBehaviour:
   m_ObjectHideFlags: 0

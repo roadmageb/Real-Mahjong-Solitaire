@@ -245,7 +245,8 @@ MonoBehaviour:
   sprites:
   - {fileID: 870701592, guid: 19e6f2ba0a21fcd45bfaa1a4e1545ec6, type: 3}
   - {fileID: 1560188842, guid: 19e6f2ba0a21fcd45bfaa1a4e1545ec6, type: 3}
-  - {fileID: -2116010613, guid: 19e6f2ba0a21fcd45bfaa1a4e1545ec6, type: 3}
+  - {fileID: -1373200192, guid: 19e6f2ba0a21fcd45bfaa1a4e1545ec6, type: 3}
+  colors: []
 --- !u!1 &5178920744769263986
 GameObject:
   m_ObjectHideFlags: 0

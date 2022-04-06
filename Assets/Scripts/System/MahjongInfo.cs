@@ -164,7 +164,7 @@ public static class MahjongInfo
         if (((mask >> 14) & (mask >> 7) & mask) > 0) return pt.isMenzen ? (2, "Three Color Straight") : (1, "Three Color Straight");
         return 0;
     }
-    public static Score SSevenHead(MahjongPattern pt, MahjongPlayer pl) => pt is MahjongPatternSevenPairs ? (2, 25, "Seven Pairs") : 0;
+    public static Score SSevenHead(MahjongPattern pt, MahjongPlayer pl) => pt is MahjongPatternSevenPairs ? new Score() { fan = 2, bu = 25, fanString = "Seven Pairs", isSevenHead = true } : 0;
     public static Score SSameNumCard(MahjongPattern pt, MahjongPlayer pl)
     {
         int mask = 0;
@@ -253,6 +253,7 @@ public static class MahjongInfo
         }
         return (0, 0);
     }
+    public static Score STsumoBu(MahjongPattern pt, MahjongPlayer pl) => (!pt.isRon && pt is not MahjongPatternSevenPairs && SPeace(pt, pl).fan == 0) ? (0, 2) : 0;
     #endregion
 
     public static Score DoraScore(MahjongPattern pt, List<MahjongCard> doraIndicators)
@@ -264,7 +265,7 @@ public static class MahjongInfo
                 if (card.isRed) count++;
                 count += doraList.Count(x => x * card == 0);
             }
-        return (count, $"Dora {count}");
+        return count > 0 ? (count, $"Dora {count}") : 0;
     }
 }
 
@@ -306,7 +307,7 @@ public struct Score
     }
     public (int oya, int other) Calc(bool ron, bool oya)
     {
-        int reBu = bu + (bu % 10 != 0 && !isSevenHead ? 10 - bu % 10 : 0);
+        int reBu = bu + ((bu % 10 != 0 && !isSevenHead) ? 10 - bu % 10 : 0);
         int tmp = (fan, reBu) switch
         {
             ( >= 13, _)     => 8000,
@@ -317,7 +318,7 @@ public struct Score
             (4, >= 40) or
             (3, >= 70)      => 2000,
             (0, _)          => 0,
-            _               => bu * (1 << (fan + 2))
+            _               => reBu * (1 << (fan + 2))
         };
         if (yakuman > 0) tmp = yakuman * 8000;
 
