@@ -35,7 +35,12 @@ public static class MahjongInfo
             return _rule;
         }
     }
-    public static Score CalculateScore(MahjongPattern pt, MahjongPlayer pl) => rule.Select(x => x(pt, pl)).Aggregate((a, b) => a + b);
+    public static Score CalculateScore(MahjongPattern pt, MahjongPlayer pl, List<MahjongCard> doraIndicators)
+    {
+        var ret = rule.Select(x => x(pt, pl)).Aggregate((a, b) => a + b);
+        if (ret.fan > 0) ret += DoraScore(pt, doraIndicators);
+        return ret;
+    }
 
     #region 1Fan
     public static Score STsumo(MahjongPattern pt, MahjongPlayer pl) => !pt.isRon && pt.isMenzen ? (1, "Self-pick") : 0;
@@ -150,13 +155,13 @@ public static class MahjongInfo
     {
         int mask = 0;
         foreach (int m in pt.sets
-            .Where(x => x is MahjongSetBody body && body.bodyType == BodyType.Straight && x.minNum % 3 == 1)
-            .Select(x => ((int)x.color - (int)CardColor.Crak) * 3 + x.minNum / 3))
+            .Where(x => x is MahjongSetBody body && body.bodyType == BodyType.Straight)
+            .Select(x => (x.color - CardColor.Crak) * 7 + x.minNum - 1))
         {
             mask |= 1 << m;
         }
-        if (new int[] { 0700, 0070, 0007 }.Count(x => (mask & x) == x) > 0) return pt.isMenzen ? (2, "Straight") : (1, "Straight");
-        if (new int[] { 0111, 0222, 0444 }.Count(x => (mask & x) == x) > 0) return pt.isMenzen ? (2, "Three Color Straight") : (1, "Three Color Straight");
+        if (new int[] { 0x49 << 14, 0x49 << 7, 0x49 }.Count(x => (mask & x) == x) > 0) return pt.isMenzen ? (2, "Straight") : (1, "Straight");
+        if (((mask >> 14) & (mask >> 7) & mask) > 0) return pt.isMenzen ? (2, "Three Color Straight") : (1, "Three Color Straight");
         return 0;
     }
     public static Score SSevenHead(MahjongPattern pt, MahjongPlayer pl) => pt is MahjongPatternSevenPairs ? (2, 25, "Seven Pairs") : 0;
@@ -249,6 +254,18 @@ public static class MahjongInfo
         return (0, 0);
     }
     #endregion
+
+    public static Score DoraScore(MahjongPattern pt, List<MahjongCard> doraIndicators)
+    {
+        int count = 0;
+        var doraList = doraIndicators.Select(x => x.IndicatingCard).ToList();
+        foreach (var set in pt.sets) foreach (var card in set.cardSet)
+            {
+                if (card.isRed) count++;
+                count += doraList.Count(x => x * card == 0);
+            }
+        return (count, $"Dora {count}");
+    }
 }
 
 public struct Score

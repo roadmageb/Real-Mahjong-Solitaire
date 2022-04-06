@@ -31,6 +31,14 @@ public class MahjongCard
         isRed = red;
     }
 
+    public (CardColor color, int num) IndicatingCard => color switch
+    {
+        >= CardColor.Crak and <= CardColor.Bam => (color, num < 9 ? num + 1 : 1),
+        CardColor.Dragon => (color, (num + 1) % 3),
+        CardColor.Wind => (color, (num + 1) % 4),
+        _ => (CardColor.Unknown, 0)
+    };
+
     public override int GetHashCode() => color switch
     {
         CardColor.Crak      => num - 1,
@@ -64,6 +72,17 @@ public class MahjongCard
             _ => 10
         };
     }
+    public static int operator *(MahjongCard a, (CardColor color, int num) b)
+    {
+        if (a.color != b.color) return 10;
+        else return a.color switch
+        {
+            CardColor.Dragon or CardColor.Wind => a.num == b.num ? 0 : 10,
+            CardColor.Bam or CardColor.Dot or CardColor.Crak => Mathf.Abs(a.num - b.num),
+            _ => 10
+        };
+    }
+    public static int operator *((CardColor color, int num) a, MahjongCard b) => b * a;
     public bool Equals(CardColor color, int num, bool isRed) => color == this.color && num == this.num && isRed == this.isRed;
 }
 

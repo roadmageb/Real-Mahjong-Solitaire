@@ -35,16 +35,18 @@ public class UIMouseInteraction : MonoBehaviour, IPointerClickHandler
     {
         if (!actionDict.ContainsKey(mouse)) actionDict.Add(mouse, new List<Action>());
         actionDict[mouse].Add(action);
-        ActionEditCallback();
     }
 
     public void RemoveAction(MouseAction mouse)
     {
         if (actionDict.ContainsKey(mouse)) actionDict[mouse].Clear();
-        ActionEditCallback();
     }
 
-    public virtual void ActionEditCallback() { }
+    public void ReplaceAction(MouseAction mouse, Action action)
+    {
+        RemoveAction(mouse);
+        AddAction(mouse, action);
+    }
 }
 
 public enum MouseAction

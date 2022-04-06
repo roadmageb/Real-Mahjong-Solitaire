@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7374385803352565450}
   - component: {fileID: 7689042413684138434}
   - component: {fileID: 6289385936494714045}
+  - component: {fileID: 4914892194204419427}
   m_Layer: 5
   m_Name: CardPrefab
   m_TagString: Untagged
@@ -90,3 +91,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sprites: []
+  colors:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1, g: 0.99526715, b: 0.603, a: 1}
+  - {r: 1, g: 0.9940594, b: 0.39999998, a: 1}
+  - {r: 1, g: 0.9920792, b: 0.19999999, a: 1}
+  - {r: 1, g: 0.62807834, b: 0.546, a: 1}
+--- !u!114 &4914892194204419427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4988842166435326264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 723523eb62f146f4f8a0b6b3f7bd12ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
